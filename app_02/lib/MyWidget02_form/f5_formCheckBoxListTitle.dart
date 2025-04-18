@@ -1,0 +1,236 @@
+import 'package:flutter/material.dart';
+
+class FormBasicDemo5 extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _FormBasicDemoState();
+}
+
+class _FormBasicDemoState extends State<FormBasicDemo5> {
+  // Sử dụng Global key để truy cập form
+  final _formKey = GlobalKey<FormState>();
+  final _fullnameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  bool _obscurePassword = true;
+  String? _name;
+  String? _selectedCity;
+  String? _gender;
+  bool _isAgreed = false; // Thêm biến này
+
+  final List<String> _cities = [
+    'Hà Nội',
+    'TP.HCM',
+    'Đà Nẵng',
+    'Cần Thơ',
+    'Hải Phòng',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Form cơ bản")),
+
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _fullnameController,
+                decoration: InputDecoration(
+                  labelText: "Họ và tên",
+                  hintText: "Nhập họ và tên của bạn",
+                  border: OutlineInputBorder(),
+                ),
+                onSaved: (value) {
+                  _name = value;
+                },
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập họ và tên';
+                  }
+                  return null;
+                },
+              ),
+
+              Text(
+                'Giới tính',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              SizedBox(height: 20),
+              FormField<String>(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng chọn giới tính';
+                  }
+                  return null;
+                },
+                initialValue: _gender,
+                builder: (FormFieldState<String> state) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      RadioListTile<String>(
+                        title: Text('Nam'),
+                        value: 'male',
+                        groupValue: _gender,
+                        onChanged: (value) {
+                          setState(() {
+                            _gender = value;
+                            state.didChange(value);
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: Text('Nữ'),
+                        value: 'female',
+                        groupValue: _gender,
+                        onChanged: (value) {
+                          setState(() {
+                            _gender = value;
+                            state.didChange(value);
+                          });
+                        },
+                      ),
+                      if (state.hasError)
+                        Padding(
+                          padding: EdgeInsets.only(left: 12),
+                          child: Text(
+                            state.errorText!,
+                            style: TextStyle(color: Colors.red, fontSize: 12),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+
+              SizedBox(height: 24),
+
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  hintText: 'example@gmail.com',
+                  prefixIcon: Icon(Icons.email),
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập email';
+                  }
+                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    return 'Email không hợp lệ';
+                  }
+                  return null;
+                },
+              ),
+
+              SizedBox(height: 20),
+
+              TextFormField(
+                controller: _phoneController,
+                decoration: InputDecoration(
+                  labelText: 'Số điện thoại',
+                  hintText: 'Nhập số điện thoại của bạn',
+                  prefixIcon: Icon(Icons.phone),
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập số điện thoại';
+                  }
+                  if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+                    return 'Số điện thoại phải có 10 chữ số';
+                  }
+                  return null;
+                },
+              ),
+
+              SizedBox(height: 16),
+
+              DropdownButtonFormField(
+                decoration: InputDecoration(
+                  labelText: "Thành phố",
+                  border: OutlineInputBorder(),
+                ),
+                value: _selectedCity,
+                items: _cities.map((city) {
+                  return DropdownMenuItem(
+                    child: Text(city),
+                    value: city,
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCity = value as String?;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng chọn thành phố';
+                  }
+                  return null;
+                },
+              ),
+
+              CheckboxListTile(
+                title: Text("Đồng ý với điều khoản abcdef"),
+                value: _isAgreed,
+                onChanged: (value) {
+                  setState(() {
+                    _isAgreed = value!;
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+
+              SizedBox(height: 20),
+
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Xin chào $_name")),
+                        );
+                      }
+                    },
+                    child: Text("Submit"),
+                  ),
+                  SizedBox(width: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      _formKey.currentState!.reset();
+                      setState(() {
+                        _name = null;
+                        _selectedCity = null;
+                        _gender = null;
+                        _isAgreed = false;
+                        _fullnameController.clear();
+                        _emailController.clear();
+                        _passwordController.clear();
+                        _confirmPasswordController.clear();
+                        _phoneController.clear();
+                      });
+                    },
+                    child: Text("Reset"),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
